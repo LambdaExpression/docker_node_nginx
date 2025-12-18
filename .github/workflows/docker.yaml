@@ -40,7 +40,21 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       # 通过 git 命令获取当前 tag 信息, 存入环境变量 APP_VERSION
       - name: Generate App Version
-        run: echo APP_VERSION=`git describe --tags --always` >> $GITHUB_ENV
+        id: get_version
+        run: |
+          if [ -f "VERSION" ]; then
+            # 读取 VERSION 文件，去除首尾空格和换行符
+            APP_VERSION=$(cat VERSION | xargs)
+            echo "使用 VERSION 文件中的版本号: $APP_VERSION"
+          else
+            # 如果 VERSION 文件不存在，回退到 git describe
+            APP_VERSION=$(git describe --tags --always)
+            echo "VERSION 文件不存在，使用 git describe: $APP_VERSION"
+          fi
+          
+          # 设置输出变量供后续步骤使用
+          echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
+          echo "version=$APP_VERSION" >> $GITHUB_OUTPUT
       # 构建 Docker 并推送到 Docker hub
       - name: Build and push
         id: docker_build
@@ -51,7 +65,7 @@ jobs:
           # 生成多平台镜像, see https://github.com/docker-library/bashbrew/blob/v0.1.1/architecture/oci-platform.go
           platforms: |
             linux/amd64
-            linux/arm64/v8
+          #  linux/arm64/v8
           #  linux/386
           #  linux/arm/v6
           #  linux/arm/v7
