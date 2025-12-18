@@ -6,11 +6,11 @@ RUN cp /etc/apt/sources.list /etc/apt/sources.list.bak && \
     echo "deb http://archive.debian.org/debian-security jessie/updates main" >> /etc/apt/sources.list
 
 # 更新并安装软件
-RUN apt-get update && apt-get install -y \
-    nginx \
-    curl \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update 
+RUN apt-get install -y nginx
+RUN apt-get install -y curl
+RUN apt-get clean
+RUN rm -rf /var/lib/apt/lists/*
 
 # 暴露端口
 EXPOSE 80
