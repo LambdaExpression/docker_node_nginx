@@ -5,6 +5,8 @@ FROM debian:bullseye-slim
 RUN apt-get update && apt-get install -y \
     curl \
     wget \
+    vi \
+    vim \
     nginx \
     python3 \
     python3-pip \
