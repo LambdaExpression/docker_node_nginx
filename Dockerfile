@@ -1,34 +1,41 @@
-# 使用 Ubuntu 20.04 最小化版本
-FROM ubuntu:20.04
+# 使用 Debian 10 (buster-slim) 作为基础镜像
+FROM debian:buster-slim
 
-# 设置时区避免交互式提示
-ENV DEBIAN_FRONTEND=noninteractive
-ENV TZ=UTC
-
-# 安装 Node.js 8.11.4（通过 NodeSource）
+# 安装依赖和工具
 RUN apt-get update && apt-get install -y \
     curl \
-    ca-certificates \
     gnupg \
-    && curl -sL https://deb.nodesource.com/setup_8.x | bash - \
-    && apt-get install -y \
-        nodejs=8.11.4-1nodesource1 \
-        nginx \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# 添加 NodeSource 的 Node.js 8.x 源（buster 支持）
+RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
+
+# 安装 Node.js 8.11.4、nginx 和 yarn 依赖
+RUN apt-get update && apt-get install -y \
+    nodejs=8.11.4-1nodesource1 \
+    nginx \
+    # yarn 的依赖
+    python \
+    make \
+    g++ \
     && rm -rf /var/lib/apt/lists/*
 
 # 安装 yarn
 RUN npm install -g yarn@1.22.5
 
-# 清理 npm 缓存
+# 清理缓存
 RUN npm cache clean --force
 
-# 配置 nginx
-RUN echo "daemon off;" >> /etc/nginx/nginx.conf
+# 创建 nginx 运行目录
 RUN mkdir -p /run/nginx
 
-# 创建测试页面
+# 配置 nginx 以非守护进程运行
+RUN echo "daemon off;" >> /etc/nginx/nginx.conf
+
+# 创建默认的 nginx 网站目录
 RUN mkdir -p /var/www/html
-RUN echo "<html><body><h1>Node.js $(node -v)</h1><p>Yarn $(yarn --version)</p></body></html>" > /var/www/html/index.html
+RUN echo "<!DOCTYPE html><html><head><title>Welcome</title></head><body><h1>Node.js $(node -v) with Nginx</h1><p>Yarn version: $(yarn --version)</p></body></html>" > /var/www/html/index.html
 
 # 设置工作目录
 WORKDIR /app
